@@ -1,0 +1,30 @@
+{
+  "name": "web-app-template",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint": "pnpm run --filter web lint",
+    "format": "pnpm run --filter web format:check && pnpm run --filter cdk format:check && pnpm run --filter shared format:check",
+    "cdk:deploy": "pnpm run --filter cdk cdk deploy --all",
+    "cdk:destroy": "pnpm run --filter cdk cdk destroy --all",
+    "web:deploy": "source setup-env.sh && pnpm run --filter web build && aws s3 sync ./packages/web/dist s3://$BUCKET_NAME --delete",
+    "web:remove": "source setup-env.sh && aws s3api delete-bucket-policy --bucket $BUCKET_NAME",
+    "show:weburl": "aws cloudformation describe-stacks --stack-name FrontendStack --query 'Stacks[0].Outputs[?OutputKey==`DomainName`].OutputValue' --output text",
+    "show:apiendpoint": "aws cloudformation describe-stacks --stack-name ApiStack --query 'Stacks[0].Outputs[?OutputKey==`ApiEndpoint`].OutputValue' --output text",
+    "local-server": "pnpm run --filter cdk local-server",
+    "web:dev": "source ./setup-env.sh && pnpm run --filter web dev",
+    "web:local": "source ./setup-env.sh && export VITE_API_ENDPOINT='http://localhost:8080' && pnpm run --filter web dev",
+    "prepare": "husky install"
+  },
+  "packageManager": "pnpm@8.15.4",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^8.0.0"
+  },
+  "dependencies": {
+    "esbuild": "^0.24.2"
+  }
+}
