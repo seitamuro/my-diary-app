@@ -22,7 +22,7 @@ export class DbStack extends cdk.Stack {
       "sudo sed -i -e \"s/^#listen_addresses = 'localhost'/listen_addresses = '*'/g\" ./postgresql.conf",
       'sudo echo "host all all 0.0.0.0/0 md5" >> ./pg_hba.conf',
       'sudo service postgresql start',
-      `sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'yourpassword'`
+      `sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'yourpassword'"`
     );
 
     const securityGroup = new ec2.SecurityGroup(this, 'DbSecurityGroup', {
