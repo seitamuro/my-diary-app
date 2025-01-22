@@ -1,14 +1,9 @@
 #!/usr/bin/env node
-import * as cdk from "aws-cdk-lib";
-import { ApiStack } from "../lib/api-stack";
-import { AuthStack } from "../lib/auth-stack";
-import { FrontendStack } from "../lib/frontend-stack";
+import * as cdk from 'aws-cdk-lib';
+import { DbStack } from '../lib/db-stack';
+import { VpcStack } from '../lib/vpc-stack';
 
 const app = new cdk.App();
 
-const auth = new AuthStack(app, "AuthStack", {});
-new ApiStack(app, "ApiStack", {
-  userPoolId: auth.userPool.userPoolId,
-  userPoolClientId: auth.userPoolClient.userPoolClientId,
-});
-new FrontendStack(app, "FrontendStack", {});
+const vpcStack = new VpcStack(app, 'VpcStack');
+const dbStack = new DbStack(app, 'DbStack', { vpc: vpcStack.vpc });
