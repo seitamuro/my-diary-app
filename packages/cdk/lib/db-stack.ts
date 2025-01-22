@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
@@ -35,6 +36,13 @@ export class DbStack extends cdk.Stack {
       'Allow inbound traffic to PostgreSQL'
     );
 
+    const ec2SsmManagedRole = new iam.Role(this, 'EC2SSMManagedRole', {
+      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AmazonEC2RoleforSSM'),
+      ],
+    });
+
     const dbInstance = new ec2.Instance(this, 'DbInstance', {
       vpc: props.vpc,
       instanceType: new ec2.InstanceType('t2.micro'),
@@ -42,9 +50,14 @@ export class DbStack extends cdk.Stack {
       vpcSubnets: props.vpc.selectSubnets({
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       }),
+      role: ec2SsmManagedRole,
       userData: userData,
       securityGroup: securityGroup,
     });
     dbInstance.userData.addSignalOnExitCommand(dbInstance);
+
+    new cdk.CfnOutput(this, 'DbInstancePrivateIp', {
+      value: dbInstance.instancePrivateIp,
+    });
   }
 }
