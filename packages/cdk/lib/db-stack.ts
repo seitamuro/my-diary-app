@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as secretmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
@@ -11,6 +12,18 @@ interface DbStackProps extends cdk.StackProps {
 export class DbStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: DbStackProps) {
     super(scope, id, props);
+
+    const dbSecret = new secretmanager.Secret(this, 'dbSecret', {
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ username: 'postgres' }),
+        generateStringKey: 'password',
+        excludeCharacters: '"@/\\',
+      },
+    });
+    //const username = dbSecret.secretValueFromJson('username').toString();
+    //const password = dbSecret.secretValueFromJson('password').toString();
+    const username = 'postgres';
+    const password = 'yourpassword';
 
     const userData = ec2.UserData.forLinux({
       shebang: '#!/bin/bash -xe',
@@ -23,7 +36,8 @@ export class DbStack extends cdk.Stack {
       "sudo sed -i -e \"s/^#listen_addresses = 'localhost'/listen_addresses = '*'/g\" ./postgresql.conf",
       'sudo echo "host all all 0.0.0.0/0 md5" >> ./pg_hba.conf',
       'sudo service postgresql start',
-      `sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'yourpassword'"`
+      'sleep 10',
+      `sudo -u postgres psql -c "ALTER USER ${username} WITH PASSWORD '${password}';"`
     );
 
     const securityGroup = new ec2.SecurityGroup(this, 'DbSecurityGroup', {
